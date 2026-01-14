@@ -493,15 +493,12 @@ app.post('/login', async (req, res) => {
 
   // Check DB First
   let user = await findUser(email);
-  console.log(user)
-  console.log(user.password)
-  // If user exists in DB
   if (user) {
     if (user.email == email) {
       if (user.password == password) {
         const token = jwt.sign({ email: user.email }, secretKey, { expiresIn: '7d' });
-        res.cookie("token", token, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "lax" });
-        res.cookie("email", user.email, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: false, sameSite: "lax" });
+        res.cookie("token", token, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: true, sameSite: "none" });
+        res.cookie("email", user.email, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true, secure: true, sameSite: "none" });
         return res.status(200).json({ success: true, message: "Authenticated" });
       }
       else {
@@ -509,7 +506,7 @@ app.post('/login', async (req, res) => {
       }
 
     }
-  } 
+  }
   else {
     return res.status(401).json({ success: false, message: "Invalid credentials" });
   }
@@ -519,8 +516,14 @@ app.post('/login', async (req, res) => {
 
 // Logout
 app.post('/logout', (req, res) => {
-  res.clearCookie("token")
-  res.clearCookie("email")
+  res.clearCookie("token", {
+    secure: true,
+    sameSite: "none"
+  });
+  res.clearCookie("email", {
+    secure: true,
+    sameSite: "none"
+  });
 
   res.json({ success: true, message: "Logged out" });
 });
